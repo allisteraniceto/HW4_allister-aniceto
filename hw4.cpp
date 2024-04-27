@@ -30,10 +30,14 @@ const int N = 5;
 class Chopstick{
 private:
     mutex chopTex;
+    int id;
     int status;
 public:
     Chopstick(){
         
+    }
+    Chopstick(int id){
+        this->id=id;
     }
     void lockChopstick(){
         if (rand() % 2 == 0){ //if heads
@@ -51,27 +55,29 @@ class Syncro{
 private:
     bool dining;
     Chopstick chopsticks[N];
-    int philosopherStates[N];
+    // int philosopherStates[N];
 public:
     Syncro(){
         this->dining = false;
-        for (int i=0; i<N; i++){
-            philosopherStates[i]=THINKING; 
-        }
+        // for (int i=0; i<N; i++){
+        //     chopsticks[i] = Chopstick(i);
+        //     // philosopherStates[i]=THINKING; 
+        // }
     }
     void putdownChopstick(int i){
-
         //validate conditions and Put down chopstick with id i
+        chopsticks[i].unlockChopstick();
     }
     void pickupChopstick(int i){
         //validate conditions and Pick up chopstick with id i
+        chopsticks[i].unlockChopstick();
     }
-    void updateStatus(int i, int status){
-        philosopherStates[i]=status;
-    }
-    int getState(int i){
-        return 0;
-    }
+    // void updateStatus(int i, int status){
+    //     philosopherStates[i]=status;
+    // }
+    // int getState(int i){
+    //     return 0;
+    // }
 };
 
 class Philosopher: thread{
@@ -81,16 +87,14 @@ private:
     double thinkTime;
     double eatTime;
     string name;
-    Chopstick left, right;
+    Chopstick &left, &right;
     thread mainThread;
     Syncro &syncro;
 public:
-    Philosopher(int state, int id, string name, Syncro &t, Chopstick &left, Chopstick &right): mainThread(&Philosopher::run, this), syncro(t){
+    Philosopher(int state, int id, string name, Syncro &t, Chopstick &left, Chopstick &right): mainThread(&Philosopher::run, this),syncro(t), left(left), right(right){
         this->state = state;
         this->id = id;
         this->name = name;
-        this->left = left;
-        this->right = right;
     }
     ~Philosopher(){ //destructor
         mainThread.join();
@@ -132,22 +136,22 @@ public:
     int tossCoin(){
         return rand()%2;
     }
-    void test(int i){
-        // check for status of the neighbors philosopher and change status
-        int leftNeighbor = (i + N - 1) % N;
-        int rightNeighbor = (i + 1) % N;
+    // void test(int i){
+    //     // check for status of the neighbors philosopher and change status
+    //     int leftNeighbor = (i + N - 1) % N;
+    //     int rightNeighbor = (i + 1) % N;
 
-        // if the left neighbor is eating or the right neighbor is eating, or both, HUNGRY
-        if (syncro.getState(leftNeighbor) == EATING || syncro.getState(rightNeighbor) == EATING) {
-            this->state = HUNGRY;
-        } else {
-            // if both neighbors are not eating, and the current philosopher is hungry, try to acquire chopsticks
-            if (state == HUNGRY) {
-                take_chopsticks();
-                syncro.putdownChopstick(i); // Release the chopstick state after successfully acquiring chopsticks
-            }
-        }
-    }
+    //     // if the left neighbor is eating or the right neighbor is eating, or both, HUNGRY
+    //     if (syncro.getState(leftNeighbor) == EATING || syncro.getState(rightNeighbor) == EATING) {
+    //         this->state = HUNGRY;
+    //     } else {
+    //         // if both neighbors are not eating, and the current philosopher is hungry, try to acquire chopsticks
+    //         if (state == HUNGRY) {
+    //             take_chopsticks();
+    //             syncro.putdownChopstick(i); // Release the chopstick state after successfully acquiring chopsticks
+    //         }
+    //     }
+    // }
 };
 
 const string nameArray[] = {"Yoda", "Obi-Wan", "Rey", "Kanan", "Leia", "Luke", "Ahsoka", 
@@ -162,7 +166,7 @@ void dine(){
     for(int i=0; i<N; i++){
         usleep(1000000);
         chopsticks[i] = new Chopstick(i);
-        philosopher[i] = new Philosopher(THINKING,i,nameArray[i], syncro, chopsticks[i], chopsticks[(i+1)%N]);
+        philosopher[i] = new Philosopher(THINKING,i,nameArray[i], syncro, *chopsticks[i], *chopsticks[(i+1)%N]);
     }
 }
 
