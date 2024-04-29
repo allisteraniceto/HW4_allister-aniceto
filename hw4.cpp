@@ -55,22 +55,27 @@ class Syncro{
 private:
     bool dining;
     Chopstick chopsticks[N];
-    // int philosopherStates[N];
 public:
     Syncro(){
         this->dining = false;
-        // for (int i=0; i<N; i++){
-        //     chopsticks[i] = Chopstick(i);
-        //     // philosopherStates[i]=THINKING; 
-        // }
     }
-    void putdownChopstick(int i){
-        //validate conditions and Put down chopstick with id i
-        chopsticks[i].unlockChopstick();
+
+    //bool to start dine session or end it
+    void setDining(bool food){ 
+        this->dining = food;
     }
-    void pickupChopstick(int i){
+    bool getDining(){
+        return this->dining;
+    }
+    void pickupChopstick(int id){
         //validate conditions and Pick up chopstick with id i
-        chopsticks[i].unlockChopstick();
+        chopsticks[id].lockChopstick();
+        chopsticks[(id+1) % N].lockChopstick();
+    }
+    void putdownChopstick(int id){
+        //validate conditions and Put down chopstick with id i
+        chopsticks[id].unlockChopstick();
+        chopsticks[(id+1) % N].unlockChopstick();
     }
     // void updateStatus(int i, int status){
     //     philosopherStates[i]=status;
@@ -87,52 +92,76 @@ private:
     double thinkTime;
     double eatTime;
     string name;
-    Chopstick &left, &right;
+    Chopstick *left, *right;
     thread mainThread;
     Syncro &syncro;
 public:
-    Philosopher(int state, int id, string name, Syncro &t, Chopstick &left, Chopstick &right): mainThread(&Philosopher::run, this),syncro(t), left(left), right(right){
+    Philosopher(int state, int id, string name, Syncro &t, Chopstick &left, Chopstick &right): mainThread(&Philosopher::run, this),syncro(t){
         this->state = state;
         this->id = id;
         this->name = name;
+        this->left = &left;
+        this->right = &right;
     }
     ~Philosopher(){ //destructor
         mainThread.join();
     }
     void run(){
-        while(true){
-            this->state = THINKING;
-            cout << "Philosopher: " << this->name << " thinking...\n";
+        do{
+            cout << "Waiting to dine" << endl;
+        }while(syncro.getDining() == false);
+
+        while(syncro.getDining() == true){
             //[TOSS COIN HERE and TAKE CHOPSTICKS]
             usleep(50000);
-            take_chopsticks();
-            this->state = EATING;
-            cout << "Philosopher: " << this->name << " eating...\n";
+            thinking();
             //[TOSS COIN and RELEASE CHOPSTICKS]
             usleep(50000);
-            release_chopsticks();
+            eating();
         }
     }
-    //lock both chopsticks
-    void take_chopsticks(){
-        //if heads, get left first, otherwise right
-        if (tossCoin()){
-            left.lockChopstick();
-            right.lockChopstick();
-        }else{
-            right.lockChopstick();
-            left.lockChopstick();
-        }
-    }
-    //unlock both chopsticks
-    void release_chopsticks(){
+
+    void thinking(){
+        this->state = THINKING;
+        cout << "Philosopher: " << this->name << " thinking..." << endl;
+        usleep(50000);
         if(tossCoin()){
-            left.unlockChopstick();
-            right.unlockChopstick();
+            syncro.pickupChopstick(this->id);
+            cout << this->name << "picked up chopsticks" << endl;
+        }else{
+            cout << this->name << "still thinking..." << endl;
         }
-        right.unlockChopstick();
-        left.unlockChopstick();
     }
+    void eating(){
+        this->state = EATING;
+        cout << "Philosopher: " << this->name << " eating..." << endl;
+        usleep(50000);
+        if(tossCoin()){
+            syncro.putdownChopstick(this->id);
+            cout << this->name << " done eating..." << endl;
+        }else
+            cout << this->name << " still eating..." << endl;
+        }
+    // //lock both chopsticks
+    // void take_chopsticks(){
+    //     //if heads, get left first, otherwise right
+    //     if (tossCoin()){
+    //         left.lockChopstick();
+    //         right.lockChopstick();
+    //     }else{
+    //         right.lockChopstick();
+    //         left.lockChopstick();
+    //     }
+    // }
+    // //unlock both chopsticks
+    // void release_chopsticks(){
+    //     if(tossCoin()){
+    //         left.unlockChopstick();
+    //         right.unlockChopstick();
+    //     }
+    //     right.unlockChopstick();
+    //     left.unlockChopstick();
+    // }
     int tossCoin(){
         return rand()%2;
     }
@@ -158,21 +187,22 @@ const string nameArray[] = {"Yoda", "Obi-Wan", "Rey", "Kanan", "Leia", "Luke", "
                           "Mace Windu", "Ezra", "Palpatine", "Anakin", "Kylo Ren", "Dooku",
                           "Kit Fitso", "Luminara", "Plo Koon", "Revan", "Thrawn", "Zeb", "Sabine"};
 
-void dine(){
+int main(){
+    srand(time(NULL)); //time as seed for rand();
     Philosopher* philosopher[N];
     Chopstick* chopsticks[N];
     Syncro syncro;
 
+
     for(int i=0; i<N; i++){
-        usleep(1000000);
         chopsticks[i] = new Chopstick(i);
         philosopher[i] = new Philosopher(THINKING,i,nameArray[i], syncro, *chopsticks[i], *chopsticks[(i+1)%N]);
     }
-}
 
-int main(){
-    srand(time(NULL)); //time as seed for rand();
-    dine();
-    printf("done\n");
+    syncro.setDining(true);
+    usleep(1000000);
+    syncro.setDining(false);
+
+    cout << "\ndine COMPLETE" << endl;
     return 0;
 }
