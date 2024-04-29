@@ -22,6 +22,7 @@ NEED 2 chopsticks to eat (left and right)
 #define EATING 3
 
 using namespace std;
+using namespace std::chrono;
 
 const int UNLOCKED = 0;
 const int LOCKED = 1;
@@ -59,7 +60,6 @@ public:
     Syncro(){
         this->dining = false;
     }
-
     //bool to start dine session or end it
     void setDining(bool food){ 
         this->dining = food;
@@ -108,39 +108,41 @@ public:
     }
     void run(){
         do{
-            cout << "Waiting to dine" << endl;
+            cout << "Waiting to dine\n";
         }while(syncro.getDining() == false);
 
         while(syncro.getDining() == true){
             //[TOSS COIN HERE and TAKE CHOPSTICKS]
-            usleep(50000);
             thinking();
             //[TOSS COIN and RELEASE CHOPSTICKS]
-            usleep(50000);
+            cout << "think time: " << this->thinkTime << "ms\n";
             eating();
         }
     }
 
     void thinking(){
         this->state = THINKING;
-        cout << "Philosopher: " << this->name << " thinking..." << endl;
+        cout << "Philosopher: " << this->name << " thinking...\n";
+        auto start = high_resolution_clock::now();
         usleep(50000);
         if(tossCoin()){
             syncro.pickupChopstick(this->id);
-            cout << this->name << "picked up chopsticks" << endl;
-        }else{
-            cout << this->name << "still thinking..." << endl;
+            cout << this->name << " picked up chopsticks\n";
         }
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop-start);
+
+        this->thinkTime += duration.count();
     }
     void eating(){
         this->state = EATING;
-        cout << "Philosopher: " << this->name << " eating..." << endl;
+        cout << "Philosopher: " << this->name << " eating...\n";
         usleep(50000);
         if(tossCoin()){
             syncro.putdownChopstick(this->id);
-            cout << this->name << " done eating..." << endl;
+            cout << this->name << " done eating...\n";
         }else
-            cout << this->name << " still eating..." << endl;
+            cout << this->name << " still eating...\n";
         }
     // //lock both chopsticks
     // void take_chopsticks(){
@@ -203,6 +205,7 @@ int main(){
     usleep(1000000);
     syncro.setDining(false);
 
-    cout << "\ndine COMPLETE" << endl;
+    cout << endl;
+    cout << "dine COMPLETE" << endl;
     return 0;
 }
