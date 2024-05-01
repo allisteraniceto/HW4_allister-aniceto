@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": ["-std=c++11"],
+      "cwd": "/Users/allisteraniceto/Documents/CPTS355/HW4_allister-aniceto",
+      "program": "/Users/allisteraniceto/Documents/CPTS355/HW4_allister-aniceto/build/Debug/outDebug"
+    }
+  ]
+}
