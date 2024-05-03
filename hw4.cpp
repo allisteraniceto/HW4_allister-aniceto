@@ -81,14 +81,32 @@ public:
         if (chopsticks[id].isLocked() || chopsticks[(id+1) % N].isLocked()){
             return false;
         }
-        chopsticks[id].lockChopstick(); //left chopstick
-        chopsticks[(id+1) % N].lockChopstick(); //right chopstick
+        if (tossCoin()){
+            chopsticks[id].lockChopstick(); //left chopstick first
+            chopsticks[(id+1) % N].lockChopstick(); //right chopstick
+        }else{
+            chopsticks[(id+1) % N].lockChopstick(); //right chopstick first
+            chopsticks[id].lockChopstick(); //left chopstick
+        }
         return true;
     }
-    void putdownChopstick(int id){
+    bool putdownChopstick(int id){
         //validate conditions and Put down chopstick with id i
-        chopsticks[id].unlockChopstick(); //left chopstick
-        chopsticks[(id+1) % N].unlockChopstick(); //right chopstick
+        if(!chopsticks[id].isLocked() || !chopsticks[(id+1) % N].isLocked()){
+            return false;
+        }
+        if (tossCoin()){
+            chopsticks[id].unlockChopstick(); //left chopstick first
+            chopsticks[(id+1) % N].unlockChopstick(); //right chopstick
+        }else{
+            chopsticks[(id+1) % N].unlockChopstick(); //right chopstick first
+            chopsticks[id].unlockChopstick(); //left chopstick
+        }
+        return true;
+    }
+
+    int tossCoin(){
+        return rand()%2;
     }
 };
 
@@ -202,8 +220,8 @@ public:
 };
 
 const string nameArray[] = {"Yoda", "Obi-Wan", "Rey", "Kanan", "Leia", "Luke", "Ahsoka", 
-                          "Mace Windu", "Ezra", "Palpatine", "Anakin", "Kylo Ren", "Dooku",
-                          "Kit Fitso", "Luminara", "Plo Koon", "Revan", "Thrawn", "Zeb", "Sabine"};
+                          "Mace", "Ezra", "Palpa", "Anakin", "Kylo", "Dooku",
+                          "Kit", "Lumin", "Plo", "Revan", "Thrawn", "Zeb", "Sabine"};
 
 int main(){
     srand(time(NULL)); //time as seed for rand();
