@@ -81,14 +81,14 @@ public:
         if (chopsticks[id].isLocked() || chopsticks[(id+1) % N].isLocked()){
             return false;
         }
-        chopsticks[id].lockChopstick();
-        chopsticks[(id+1) % N].lockChopstick();
+        chopsticks[id].lockChopstick(); //left chopstick
+        chopsticks[(id+1) % N].lockChopstick(); //right chopstick
         return true;
     }
     void putdownChopstick(int id){
         //validate conditions and Put down chopstick with id i
-        chopsticks[id].unlockChopstick();
-        chopsticks[(id+1) % N].unlockChopstick();
+        chopsticks[id].unlockChopstick(); //left chopstick
+        chopsticks[(id+1) % N].unlockChopstick(); //right chopstick
     }
 };
 
@@ -176,6 +176,26 @@ public:
 
         this->eatTime += duration.count();
     }
+    // //lock both chopsticks
+    // void take_chopsticks(){
+    //     //if heads, get left first, otherwise right
+    //     if (tossCoin()){
+    //         left.lockChopstick();
+    //         right.lockChopstick();
+    //     }else{
+    //         right.lockChopstick();
+    //         left.lockChopstick();
+    //     }
+    // }
+    // //unlock both chopsticks
+    // void release_chopsticks(){
+    //     if(tossCoin()){
+    //         left.unlockChopstick();
+    //         right.unlockChopstick();
+    //     }
+    //     right.unlockChopstick();
+    //     left.unlockChopstick();
+    // }
     int tossCoin(){
         return rand()%2;
     }
@@ -190,6 +210,7 @@ int main(){
     Philosopher* philosophers[N];
     Chopstick* chopsticks[N];
     Syncro syncro;
+
 
     for(int i=0; i<N; i++){
         chopsticks[i] = new Chopstick(i);
